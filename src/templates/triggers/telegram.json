@@ -1,0 +1,17 @@
+{
+  "{{TRIGGER_ID}}": {
+    "name": "{{MONITOR_NAME}} Telegram Alert",
+    "trigger_type": "telegram",
+    "config": {
+      "token": {
+        "type": "plain",
+        "value": "{{TELEGRAM_TOKEN}}"
+      },
+      "chat_id": "{{TELEGRAM_CHAT_ID}}",
+      "message": {
+        "title": "Whale Alert - {{CONTRACT_NAME}}",
+        "body": "Large transfer detected on {{NETWORK_NAME}}\n\nAmount: ${events.0.args.2}\nFrom: ${events.0.args.0}\nTo: ${events.0.args.1}\n\nTransaction: ${transaction.hash}"
+      }
+    }
+  }
+}

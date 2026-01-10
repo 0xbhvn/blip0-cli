@@ -1,0 +1,21 @@
+{
+  "name": "{{MONITOR_NAME}}",
+  "networks": ["{{NETWORK_SLUG}}"],
+  "paused": false,
+  "addresses": [
+    {
+      "address": "{{CONTRACT_ADDRESS}}"
+    }
+  ],
+  "match_conditions": {
+    "functions": [],
+    "events": [
+      {
+        "signature": "transfer(Address,Address,i128)",
+        "expression": "2 > {{THRESHOLD}}"
+      }
+    ],
+    "transactions": []
+  },
+  "triggers": ["{{TRIGGER_ID}}"]
+}
