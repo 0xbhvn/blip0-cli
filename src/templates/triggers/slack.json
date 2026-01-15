@@ -1,16 +1,16 @@
 {
-  "{{TRIGGER_ID}}": {
-    "name": "{{MONITOR_NAME}} Slack Alert",
-    "trigger_type": "slack",
-    "config": {
-      "slack_url": {
-        "type": "plain",
-        "value": "{{WEBHOOK_URL}}"
-      },
-      "message": {
-        "title": "Whale Alert - {{CONTRACT_NAME}}",
-        "body": "Large transfer detected on {{NETWORK_NAME}}\n\nAmount: ${events.0.args.2}\nFrom: ${events.0.args.0}\nTo: ${events.0.args.1}\n\nTransaction: ${transaction.hash}"
-      }
-    }
-  }
+	"{{TRIGGER_ID}}": {
+		"name": "{{MONITOR_NAME}} Slack Alert",
+		"trigger_type": "slack",
+		"config": {
+			"slack_url": {
+				"type": "plain",
+				"value": "{{WEBHOOK_URL}}"
+			},
+			"message": {
+				"title": "Whale Alert - {{CONTRACT_NAME}}",
+				"body": "Large transfer detected on {{NETWORK_NAME}}\n\nAmount: ${events.0.args.2}\nFrom: ${events.0.args.0}\nTo: ${events.0.args.1}\n\nTransaction: ${transaction.hash}"
+			}
+		}
+	}
 }
