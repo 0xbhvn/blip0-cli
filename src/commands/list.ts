@@ -1,43 +1,51 @@
-import chalk from 'chalk';
-import { loadSessions } from '../lib/config-manager.js';
-import { isSessionRunning } from '../lib/runtime-manager.js';
+import { loadSessions } from "../lib/config-manager.js";
+import { isSessionRunning } from "../lib/runtime-manager.js";
+import { color, divider, hint, intro, log, tableRow } from "../lib/ui.js";
 
 export async function listCommand(): Promise<void> {
-  console.log(chalk.cyan.bold('\nRunning Monitors\n'));
+	intro("Running Monitors");
 
-  const sessions = await loadSessions();
+	const sessions = await loadSessions();
 
-  if (sessions.length === 0) {
-    console.log(chalk.dim('No monitors running.'));
-    console.log(chalk.dim('\nStart one with:'));
-    console.log(`  ${chalk.white('blip0 whale-alert')}`);
-    console.log();
-    return;
-  }
+	if (sessions.length === 0) {
+		log.message("No monitors running.");
+		hint("Start one with:");
+		hint("  blip0 whale-alert");
+		return;
+	}
 
-  // Check actual status of each session
-  console.log(chalk.dim('─'.repeat(70)));
-  console.log(
-    `${chalk.white('ID'.padEnd(12))} ${chalk.white('Tool'.padEnd(16))} ${chalk.white('Status'.padEnd(12))} ${chalk.white('Started')}`
-  );
-  console.log(chalk.dim('─'.repeat(70)));
+	// Table header
+	divider(70);
+	log.message(
+		tableRow([
+			{ value: "ID", width: 12, color: color.white },
+			{ value: "Tool", width: 16, color: color.white },
+			{ value: "Status", width: 12, color: color.white },
+			{ value: "Started", width: 24, color: color.white },
+		]),
+	);
+	divider(70);
 
-  for (const session of sessions) {
-    const isRunning = await isSessionRunning(session.id);
-    const status = isRunning
-      ? chalk.green('running')
-      : chalk.red('stopped');
+	// Table rows
+	for (const session of sessions) {
+		const isRunning = await isSessionRunning(session.id);
+		const status = isRunning ? "running" : "stopped";
+		const statusColor = isRunning ? color.green : color.red;
+		const startedAt = new Date(session.startedAt).toLocaleString();
 
-    const startedAt = new Date(session.startedAt).toLocaleString();
+		log.message(
+			tableRow([
+				{ value: session.id, width: 12, color: color.cyan },
+				{ value: session.tool, width: 16 },
+				{ value: status, width: 12, color: statusColor },
+				{ value: startedAt, width: 24, color: color.dim },
+			]),
+		);
+	}
 
-    console.log(
-      `${chalk.cyan(session.id.padEnd(12))} ${session.tool.padEnd(16)} ${status.padEnd(20)} ${chalk.dim(startedAt)}`
-    );
-  }
+	divider(70);
 
-  console.log(chalk.dim('─'.repeat(70)));
-  console.log();
-  console.log(chalk.dim('Stop a monitor with:'));
-  console.log(`  ${chalk.white('blip0 stop <session-id>')}`);
-  console.log();
+	// Help hint
+	hint("Stop a monitor with:");
+	hint("  blip0 stop <session-id>");
 }
