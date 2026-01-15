@@ -1,3 +1,18 @@
+// Monitor type selection
+export type MonitorType = "events" | "functions" | "transactions";
+
+// Match condition for events/functions
+export interface MatchCondition {
+	signature: string;
+	expression?: string;
+}
+
+// Transaction match condition
+export interface TransactionCondition {
+	status?: "Success" | "Any";
+	expression?: string;
+}
+
 // User configuration stored in ~/.blip0/
 export interface UserConfig {
 	network: string;
@@ -6,6 +21,11 @@ export interface UserConfig {
 	threshold: string;
 	notificationType: "discord" | "telegram" | "slack" | "webhook";
 	webhookUrl: string;
+	// New fields for contract introspection
+	monitorType?: MonitorType;
+	selectedEvents?: MatchCondition[];
+	selectedFunctions?: MatchCondition[];
+	selectedTransactions?: TransactionCondition;
 }
 
 // Blip0 saved configs
@@ -66,6 +86,10 @@ export interface OZMonitorConfig {
 	paused: boolean;
 	addresses: Array<{ address: string }>;
 	match_conditions: {
+		functions?: Array<{
+			signature: string;
+			expression?: string;
+		}>;
 		events?: Array<{
 			signature: string;
 			expression?: string;

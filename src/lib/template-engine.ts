@@ -1,5 +1,5 @@
 import { dirname, join } from "node:path";
-import type { TemplateVars } from "../types/index.js";
+import type { MatchCondition, OZMonitorConfig, TemplateVars, UserConfig } from "../types/index.js";
 
 const TEMPLATES_DIR = join(dirname(import.meta.dir), "templates");
 
@@ -85,4 +85,65 @@ export function buildTemplateVars(
 	}
 
 	return vars;
+}
+
+/**
+ * Build monitor configuration dynamically based on user selections
+ */
+export function buildMonitorConfig(
+	userConfig: UserConfig,
+	vars: TemplateVars,
+): OZMonitorConfig {
+	const monitorConfig: OZMonitorConfig = {
+		name: vars.MONITOR_NAME,
+		networks: [vars.NETWORK_SLUG],
+		paused: false,
+		addresses: [{ address: vars.CONTRACT_ADDRESS }],
+		match_conditions: {
+			events: [],
+			transactions: [],
+		},
+		triggers: [vars.TRIGGER_ID],
+	};
+
+	const threshold = vars.THRESHOLD;
+	const monitorType = userConfig.monitorType || "events";
+
+	if (monitorType === "events") {
+		// Use selected events or fallback to default transfer
+		const events = userConfig.selectedEvents?.length
+			? userConfig.selectedEvents
+			: [{ signature: "transfer(Address,Address,i128)" }];
+
+		monitorConfig.match_conditions.events = events.map((event) => ({
+			signature: event.signature,
+			// For token transfers, index 2 is typically the amount
+			expression: event.expression || `2 > ${threshold}`,
+		}));
+	} else if (monitorType === "functions") {
+		// Use selected functions
+		const functions = userConfig.selectedFunctions?.length
+			? userConfig.selectedFunctions
+			: [{ signature: "transfer(Address,Address,i128)" }];
+
+		monitorConfig.match_conditions = {
+			...monitorConfig.match_conditions,
+			functions: functions.map((fn) => ({
+				signature: fn.signature,
+				expression: fn.expression || `amount > ${threshold}`,
+			})),
+		};
+	} else if (monitorType === "transactions") {
+		// Monitor all transactions with optional filter
+		const txCondition = userConfig.selectedTransactions || { status: "Success" };
+
+		monitorConfig.match_conditions.transactions = [
+			{
+				status: txCondition.status || "Success",
+				expression: txCondition.expression || `value > ${threshold}`,
+			},
+		];
+	}
+
+	return monitorConfig;
 }

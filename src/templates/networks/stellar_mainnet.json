@@ -7,7 +7,7 @@
 			"type_": "rpc",
 			"url": {
 				"type": "plain",
-				"value": "https://soroban.stellar.org"
+				"value": "https://stellar-soroban-public.nodies.app"
 			},
 			"weight": 100
 		}

@@ -6,7 +6,7 @@ import {
 	writeOZConfigs,
 } from "../lib/config-manager.js";
 import { generateSessionId, startMonitor } from "../lib/runtime-manager.js";
-import { buildTemplateVars, loadTemplate } from "../lib/template-engine.js";
+import { buildMonitorConfig, buildTemplateVars, loadTemplate } from "../lib/template-engine.js";
 import { hint, intro, log, note, outro, spinner } from "../lib/ui.js";
 import {
 	confirmStart,
@@ -73,15 +73,20 @@ export async function whaleAlertCommand(options: WhaleAlertOptions): Promise<voi
 		// Build template variables
 		const vars = buildTemplateVars(TOOL_NAME, config, networkPreset);
 
-		// Load and process templates
+		// Load network template and build dynamic monitor config
 		const networkConfig = await loadTemplate("networks", networkPreset.slug);
-		const monitorConfig = await loadTemplate("monitors", "whale_alert", vars);
+		const monitorConfig = buildMonitorConfig(config, vars);
 		const triggerConfig = await loadTemplate("triggers", config.notificationType, vars);
 
 		// Create session directory and write configs
 		const sessionId = generateSessionId();
 		const sessionDir = await createSessionDir(sessionId);
-		await writeOZConfigs(sessionDir, networkConfig, monitorConfig, triggerConfig);
+		await writeOZConfigs(
+			sessionDir,
+			networkConfig,
+			monitorConfig as unknown as Record<string, unknown>,
+			triggerConfig,
+		);
 
 		s.stop("Configuration generated");
 

@@ -1,6 +1,13 @@
-import type { UserConfig } from "../types/index.js";
+import type { MatchCondition, MonitorType, UserConfig } from "../types/index.js";
 import { NETWORK_PRESETS } from "./config-manager.js";
-import { handleCancel, note, prompts } from "./ui.js";
+import {
+	fetchContractSpec,
+	getCommonTokenEvents,
+	type ContractEvent,
+	type ContractFunction,
+	type ContractSpec,
+} from "./contract-inspector.js";
+import { handleCancel, log, note, prompts, spinner } from "./ui.js";
 
 /**
  * Whale Alert wizard prompts
@@ -36,7 +43,20 @@ export async function whaleAlertWizard(): Promise<UserConfig> {
 	});
 	handleCancel(contractName);
 
-	// Alert threshold
+	// Fetch contract spec for introspection
+	const introspectionResult = await fetchContractInterface(
+		contractAddress as string,
+		network as string,
+	);
+
+	// Select what to monitor and get selected items
+	const {
+		monitorType,
+		selectedEvents,
+		selectedFunctions,
+	} = await selectMonitorTargets(introspectionResult);
+
+	// Alert threshold (for the expression filter)
 	const threshold = await prompts.text({
 		message: "Alert threshold (minimum transfer amount):",
 		initialValue: "1000000",
@@ -121,7 +141,169 @@ export async function whaleAlertWizard(): Promise<UserConfig> {
 		threshold: threshold as string,
 		notificationType: notificationType as UserConfig["notificationType"],
 		webhookUrl,
+		monitorType,
+		selectedEvents,
+		selectedFunctions,
 	};
+}
+
+/**
+ * Fetch contract interface with spinner
+ */
+async function fetchContractInterface(
+	contractAddress: string,
+	network: string,
+): Promise<ContractSpec | null> {
+	const networkPreset = NETWORK_PRESETS[network];
+
+	// Skip for non-Stellar networks
+	if (networkPreset?.type !== "Stellar") {
+		return null;
+	}
+
+	const s = spinner();
+	s.start("Fetching contract interface...");
+
+	const result = await fetchContractSpec(contractAddress, network);
+
+	if (result.success) {
+		const { functions, events } = result.spec;
+		s.stop(`Found ${functions.length} functions, ${events.length} events`);
+		return result.spec;
+	}
+
+	s.stop(`Could not fetch contract spec: ${result.error}`);
+	log.warn("Falling back to manual input or common token events");
+	return null;
+}
+
+/**
+ * Select what to monitor and which items
+ */
+async function selectMonitorTargets(spec: ContractSpec | null): Promise<{
+	monitorType: MonitorType;
+	selectedEvents?: MatchCondition[];
+	selectedFunctions?: MatchCondition[];
+}> {
+	// Ask what type of monitoring
+	const monitorType = await prompts.select({
+		message: "What do you want to monitor?",
+		options: [
+			{
+				value: "events",
+				label: "Events",
+				hint: "recommended for alerts",
+			},
+			{
+				value: "functions",
+				label: "Functions",
+				hint: "contract calls",
+			},
+			{
+				value: "transactions",
+				label: "Transactions",
+				hint: "all activity",
+			},
+		],
+		initialValue: "events",
+	});
+	handleCancel(monitorType);
+
+	const selectedMonitorType = monitorType as MonitorType;
+
+	// For transactions, no further selection needed
+	if (selectedMonitorType === "transactions") {
+		return { monitorType: selectedMonitorType };
+	}
+
+	// Get available items based on spec or fallback
+	if (selectedMonitorType === "events") {
+		const events = spec?.events.length
+			? spec.events
+			: getCommonTokenEvents();
+
+		if (events.length === 0) {
+			// No events found, prompt for manual input
+			const manualSignature = await promptManualSignature("event");
+			return {
+				monitorType: selectedMonitorType,
+				selectedEvents: [{ signature: manualSignature }],
+			};
+		}
+
+		const selectedEventSignatures = await selectItems(events, "events");
+		return {
+			monitorType: selectedMonitorType,
+			selectedEvents: selectedEventSignatures.map((sig) => ({ signature: sig })),
+		};
+	}
+
+	// Functions
+	if (spec?.functions.length) {
+		const selectedFunctionSignatures = await selectItems(spec.functions, "functions");
+		return {
+			monitorType: selectedMonitorType,
+			selectedFunctions: selectedFunctionSignatures.map((sig) => ({ signature: sig })),
+		};
+	}
+
+	// No functions found, prompt for manual input
+	const manualSignature = await promptManualSignature("function");
+	return {
+		monitorType: selectedMonitorType,
+		selectedFunctions: [{ signature: manualSignature }],
+	};
+}
+
+/**
+ * Prompt user to select items from a list
+ */
+async function selectItems(
+	items: (ContractFunction | ContractEvent)[],
+	itemType: "events" | "functions",
+): Promise<string[]> {
+	const options = items.map((item) => ({
+		value: item.signature,
+		label: item.name,
+		hint: item.doc?.slice(0, 40) || item.signature,
+	}));
+
+	const selected = await prompts.multiselect({
+		message: `Select ${itemType} to monitor:`,
+		options,
+		required: true,
+	});
+	handleCancel(selected);
+
+	return selected as string[];
+}
+
+/**
+ * Prompt for manual signature input when auto-detection fails
+ */
+async function promptManualSignature(type: "event" | "function"): Promise<string> {
+	log.warn(`No ${type}s detected. Please enter a signature manually.`);
+
+	const example =
+		type === "event"
+			? "transfer(Address,Address,i128)"
+			: "transfer(Address,Address,i128)";
+
+	const signature = await prompts.text({
+		message: `Enter ${type} signature:`,
+		placeholder: example,
+		validate: (input) => {
+			if (!input.trim()) {
+				return "Signature is required";
+			}
+			if (!input.includes("(")) {
+				return "Signature should include parameters, e.g., transfer(Address,Address,i128)";
+			}
+		},
+	});
+	handleCancel(signature);
+
+	return signature as string;
 }
 
 /**
