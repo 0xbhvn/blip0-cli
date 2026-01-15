@@ -1,6 +1,6 @@
 {
 	"name": "blip0",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "Zero-config blockchain monitoring CLI built on OpenZeppelin Monitor",
 	"type": "module",
 	"bin": {
