@@ -1,8 +1,4 @@
-import {
-	Contract,
-	rpc,
-	xdr,
-} from "@stellar/stellar-sdk";
+import { Contract, rpc, xdr } from "@stellar/stellar-sdk";
 import { Spec } from "@stellar/stellar-sdk/contract";
 import { NETWORK_PRESETS } from "./config-manager.js";
 
@@ -122,10 +118,7 @@ function typeToString(type: xdr.ScSpecTypeDef): string {
 /**
  * Build function signature from name and inputs
  */
-function buildFunctionSignature(
-	name: string,
-	inputs: { name: string; type: string }[],
-): string {
+function buildFunctionSignature(name: string, inputs: { name: string; type: string }[]): string {
 	const params = inputs.map((i) => i.type).join(",");
 	return `${name}(${params})`;
 }
@@ -133,10 +126,7 @@ function buildFunctionSignature(
 /**
  * Build event signature from name and fields
  */
-function buildEventSignature(
-	name: string,
-	fields: { name: string; type: string }[],
-): string {
+function buildEventSignature(name: string, fields: { name: string; type: string }[]): string {
 	const params = fields.map((f) => f.type).join(",");
 	return `${name}(${params})`;
 }
@@ -215,9 +205,7 @@ function parseSpecEntries(specEntries: xdr.ScSpecEntry[]): ContractSpec {
 /**
  * Result of fetching contract executable info
  */
-type ContractExecutableInfo =
-	| { type: "wasm"; wasm: Buffer }
-	| { type: "stellar_asset" };
+type ContractExecutableInfo = { type: "wasm"; wasm: Buffer } | { type: "stellar_asset" };
 
 /**
  * Fetch the contract executable info from the network
@@ -246,11 +234,7 @@ async function fetchContractExecutable(
 
 	// The SDK already parses the XDR for us - val is LedgerEntryData
 	const instanceData = instanceEntry.val;
-	const executable = instanceData
-		.contractData()
-		.val()
-		.instance()
-		.executable();
+	const executable = instanceData.contractData().val().instance().executable();
 
 	// Check executable type - SAC vs WASM
 	const execType = executable.switch().name;
@@ -264,9 +248,7 @@ async function fetchContractExecutable(
 	const wasmHash = executable.wasmHash();
 
 	// Step 2: Fetch the WASM code using the hash
-	const wasmKey = xdr.LedgerKey.contractCode(
-		new xdr.LedgerKeyContractCode({ hash: wasmHash }),
-	);
+	const wasmKey = xdr.LedgerKey.contractCode(new xdr.LedgerKeyContractCode({ hash: wasmHash }));
 
 	const wasmResponse = await server.getLedgerEntries(wasmKey);
 
@@ -454,10 +436,7 @@ export async function fetchContractSpec(
 
 	try {
 		// Fetch the contract executable info
-		const execInfo = await fetchContractExecutable(
-			contractAddress,
-			networkPreset.rpcUrl,
-		);
+		const execInfo = await fetchContractExecutable(contractAddress, networkPreset.rpcUrl);
 
 		// Handle Stellar Asset Contracts (SACs) - use standard SEP-41 interface
 		if (execInfo.type === "stellar_asset") {
@@ -472,8 +451,7 @@ export async function fetchContractSpec(
 
 		return { success: true, spec };
 	} catch (error) {
-		const message =
-			error instanceof Error ? error.message : "Unknown error occurred";
+		const message = error instanceof Error ? error.message : "Unknown error occurred";
 		return {
 			success: false,
 			error: message,

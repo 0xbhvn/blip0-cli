@@ -90,10 +90,7 @@ export function buildTemplateVars(
 /**
  * Build monitor configuration dynamically based on user selections
  */
-export function buildMonitorConfig(
-	userConfig: UserConfig,
-	vars: TemplateVars,
-): OZMonitorConfig {
+export function buildMonitorConfig(userConfig: UserConfig, vars: TemplateVars): OZMonitorConfig {
 	const monitorConfig: OZMonitorConfig = {
 		name: vars.MONITOR_NAME,
 		networks: [vars.NETWORK_SLUG],

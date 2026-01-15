@@ -1,11 +1,11 @@
 import type { MatchCondition, MonitorType, UserConfig } from "../types/index.js";
 import { NETWORK_PRESETS } from "./config-manager.js";
 import {
-	fetchContractSpec,
-	getCommonTokenEvents,
 	type ContractEvent,
 	type ContractFunction,
 	type ContractSpec,
+	fetchContractSpec,
+	getCommonTokenEvents,
 } from "./contract-inspector.js";
 import { handleCancel, log, note, prompts, spinner } from "./ui.js";
 
@@ -50,11 +50,8 @@ export async function whaleAlertWizard(): Promise<UserConfig> {
 	);
 
 	// Select what to monitor and get selected items
-	const {
-		monitorType,
-		selectedEvents,
-		selectedFunctions,
-	} = await selectMonitorTargets(introspectionResult);
+	const { monitorType, selectedEvents, selectedFunctions } =
+		await selectMonitorTargets(introspectionResult);
 
 	// Alert threshold (for the expression filter)
 	const threshold = await prompts.text({
@@ -218,9 +215,7 @@ async function selectMonitorTargets(spec: ContractSpec | null): Promise<{
 
 	// Get available items based on spec or fallback
 	if (selectedMonitorType === "events") {
-		const events = spec?.events.length
-			? spec.events
-			: getCommonTokenEvents();
+		const events = spec?.events.length ? spec.events : getCommonTokenEvents();
 
 		if (events.length === 0) {
 			// No events found, prompt for manual input
@@ -285,9 +280,7 @@ async function promptManualSignature(type: "event" | "function"): Promise<string
 	log.warn(`No ${type}s detected. Please enter a signature manually.`);
 
 	const example =
-		type === "event"
-			? "transfer(Address,Address,i128)"
-			: "transfer(Address,Address,i128)";
+		type === "event" ? "transfer(Address,Address,i128)" : "transfer(Address,Address,i128)";
 
 	const signature = await prompts.text({
 		message: `Enter ${type} signature:`,
