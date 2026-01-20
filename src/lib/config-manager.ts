@@ -27,15 +27,6 @@ export const NETWORK_PRESETS: Record<string, NetworkPreset> = {
 		blockTimeMs: 5000,
 		explorerUrl: "https://stellar.expert/explorer/testnet",
 	},
-	ethereum_mainnet: {
-		slug: "ethereum_mainnet",
-		name: "Ethereum Mainnet",
-		type: "EVM",
-		rpcUrl: "https://eth.llamarpc.com",
-		chainId: 1,
-		blockTimeMs: 12000,
-		explorerUrl: "https://etherscan.io",
-	},
 };
 
 /**

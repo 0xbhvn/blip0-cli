@@ -1,5 +1,5 @@
 import { dirname, join } from "node:path";
-import type { MatchCondition, OZMonitorConfig, TemplateVars, UserConfig } from "../types/index.js";
+import type { OZMonitorConfig, TemplateVars, UserConfig } from "../types/index.js";
 
 const TEMPLATES_DIR = join(dirname(import.meta.dir), "templates");
 

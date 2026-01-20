@@ -19,7 +19,6 @@ export async function whaleAlertWizard(): Promise<UserConfig> {
 		options: [
 			{ value: "stellar_mainnet", label: "Stellar Mainnet" },
 			{ value: "stellar_testnet", label: "Stellar Testnet" },
-			{ value: "ethereum_mainnet", label: "Ethereum Mainnet" },
 		],
 		initialValue: "stellar_mainnet",
 	});

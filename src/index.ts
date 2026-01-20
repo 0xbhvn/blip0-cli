@@ -18,7 +18,7 @@ program
 	.command("whale-alert")
 	.description("Monitor large transfers on a contract")
 	.option("-r, --reconfigure", "Reconfigure settings")
-	.option("-n, --network <network>", "Network to monitor (stellar_mainnet, ethereum_mainnet)")
+	.option("-n, --network <network>", "Network to monitor (stellar_mainnet, stellar_testnet)")
 	.option("-t, --threshold <amount>", "Minimum transfer amount to alert")
 	.option("-c, --contract <address>", "Contract address to monitor")
 	.action(async (options) => {
