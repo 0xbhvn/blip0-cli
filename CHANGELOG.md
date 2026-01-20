@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/0xbhvn/blip0-cli/compare/blip0-v0.2.0...blip0-v0.3.0) (2026-01-20)
+
+
+### Features
+
+* **networks:** add Stellar Testnet support and remove Ethereum Mainnet references ([84e67c5](https://github.com/0xbhvn/blip0-cli/commit/84e67c5467d94f00c0b344b80c1d361525c302ad))
+
 ## [0.2.0](https://github.com/0xbhvn/blip0-cli/compare/blip0-v0.1.0...blip0-v0.2.0) (2026-01-15)
 
 
